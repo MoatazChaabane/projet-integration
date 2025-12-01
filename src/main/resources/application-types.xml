@@ -1,0 +1,76 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="employee" format="json">
+      <types:shape format="weave" example="examples/client - Copie.json"><![CDATA[%dw 2.0
+
+type employee = {|
+  nom: String, 
+  prenom: String, 
+  contrat: String, 
+  salaire: Number {"typeId": "int"}
+|} {"example": "{\\\"nom\\\":\\\"Dupont\\\",\\\"prenom\\\":\\\"Jean\\\",\\\"contrat\\\":\\\"CDD\\\",\\\"salaire\\\":2500}"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="status" format="json">
+      <types:shape format="weave" example="examples/client - Copie (2).json"><![CDATA[%dw 2.0
+
+type status = {|
+  nom: String, 
+  prenom: String, 
+  contrat: String, 
+  salaire: Number {"typeId": "int"}, 
+  status: String
+|} {"example": "{\\\"nom\\\":\\\"Dupont\\\",\\\"prenom\\\":\\\"Jean\\\",\\\"contrat\\\":\\\"CDD\\\",\\\"salaire\\\":2500,\\\"status\\\":\\\"success\\\"}"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#5838a63e-2db3-48b3-8997-0cca6c457443">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="status"/>
+        </types:message>
+      </types:input-event>
+      <types:output-event>
+        <types:message>
+          <types:payload type="status"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#520ed4a9-9082-4312-be6c-e6ca5254961e">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="status"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#4720b634-8f6b-4bca-946c-dd9e39c84b2f">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="status"/>
+        </types:message>
+      </types:input-event>
+      <types:output-event>
+        <types:message>
+          <types:payload type="status"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#c33ddee1-9db5-4201-858d-b65cb44bdf75">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="status"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

@@ -1,0 +1,7 @@
+{
+    "nom": "Dupont",
+    "prenom": "Jean",
+    "contrat": "CDD",
+    "salaire": 2500,
+    "status":"success"
+}
