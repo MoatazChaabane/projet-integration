@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="d4281272-e49c-4b8d-a447-59b9c00fb5c4" >
+		<http:listener-connection host="0.0.0.0" port="9091" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="a2585387-bd63-4401-9c4b-a7df607ae80e" basePath="/api">
+		<http:request-connection host="localhost" port="3000" />
+	</http:request-config>
+	<flow name="validationFlow" doc:id="7c739d57-ef91-44f8-8df8-11e933ff56db" >
+		<http:listener doc:name="Listener" doc:id="d7db9d85-338c-4771-923d-172ab9a98bf6" config-ref="HTTP_Listener_config" path="/employees"/>
+		<ee:transform doc:name="Transform Message" doc:id="5838a63e-2db3-48b3-8997-0cca6c457443">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	nom: payload.nom,
+	prenom: payload.prenom,
+	contrat: payload.contrat,
+	salaire: payload.salaire,
+	status: payload.status
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="2964b4b6-f9b3-4468-b822-fa3ee026e5cd">
+			<when expression='#[payload.contrat[0] == "CIVP"]'>
+				<logger level="INFO" doc:name="Logger" doc:id="d365e92d-c55f-4ca9-9d52-399a4b8efed6" message="#[payload.contrat[0]]" />
+				<ee:transform doc:name="Transform Message" doc:id="4720b634-8f6b-4bca-946c-dd9e39c84b2f" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	nom: payload.nom,
+	prenom: payload.prenom,
+	contrat: payload.contrat,
+	salaire: payload.salaire,
+	status: ('success') ++ payload.status[0]
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<http:request method="POST" doc:name="Request" doc:id="e06e50c7-9782-44d3-9395-3fad8f09c5f0" config-ref="HTTP_Request_configuration" path="/payment"/>
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Logger" doc:id="30baf4f6-5390-44be-9bd3-9a570522d463" message="#[payload.contrat[0]]"/>
+				<ee:transform doc:name="Transform Message1" doc:id="c33ddee1-9db5-4201-858d-b65cb44bdf75">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	nom: payload.nom,
+	prenom: payload.prenom,
+	contrat: payload.contrat,
+	salaire: payload.salaire,
+	status: ('success') ++ payload.status[0]
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-variable value="#[payload]" doc:name="status" doc:id="102ef81b-91d5-4dce-b5a0-f36bb656377f" variableName="status" />
+				<http:request method="POST" doc:name="Request" doc:id="ff1a59b9-2f4f-4f03-99e0-5a082529b41c" config-ref="HTTP_Request_configuration" path="/payment" />
+				<logger level="INFO" doc:name="Logger1" doc:id="6345bbb0-df55-49eb-ae45-d8684403c035" message="#[payload]" />
+				<http:request method="POST" doc:name="Request" doc:id="c182d8b5-e629-4340-a95b-c7a784a0ba2f" config-ref="HTTP_Request_configuration" path="/cnss">
+					<http:body ><![CDATA[#[vars.status]]]></http:body>
+				</http:request>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>
